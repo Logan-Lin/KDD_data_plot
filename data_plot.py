@@ -3,6 +3,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import pymysql as pm
+import data_fetch
 
 database = pm.connect("localhost", "root", "094213", "KDD")
 cursor = database.cursor()
@@ -100,6 +101,7 @@ if len(sys.argv) > 1:
     except:
         print("Command line argument no correct!")
         exit(1)
+
 
 station_coordinate = get_station_location(station_id)
 nearest = get_nearest_grid(station_id, grid_count)

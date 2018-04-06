@@ -3,7 +3,7 @@ import requests
 
 
 def insert_current_grid_data(start_time, end_time):
-    cursor.execute("delete from KDD.bj_current_meo_grid " +
+    cursor.execute("delete from " + database_name +".bj_current_meo_grid " +
                    "where utctime >= '" + start_time + "' and utctime <= '" + end_date + "'")
     print("Fetching grid meteorology data...")
     url = "https://biendata.com/competition/meteorology/bj_grid/" + \
@@ -12,8 +12,9 @@ def insert_current_grid_data(start_time, end_time):
     rows = responses.text.split('\n')
     print("Inserting into database...")
     aggregate = len(rows)
+    duplicate = []
     for i in range(1, aggregate - 1):
-        row = rows[i]
+        row = rows[i].rstrip()
         data_array = row.split(",")
         header = "','".join([data_array[1], data_array[2], data_array[3]])
         data = ",".join([data_array[4], data_array[5], data_array[6], data_array[7], data_array[8]])
@@ -23,12 +24,13 @@ def insert_current_grid_data(start_time, end_time):
                            "pressure, humidity, wind_direction, wind_speed) VALUE " +
                            "('" + header + "'," + data + ")")
         except:
-            print("Duplicate key at ", i, "(Can be ignored)", sep='')
+            duplicate.append(str(i))
+    print("Duplicate key at ", ", ".join(duplicate), "(Can be ignored)", sep='')
     db.commit()
 
 
 def insert_current_aq_data(start_time, end_time):
-    cursor.execute("delete from KDD.bj_current_aq " +
+    cursor.execute("delete from " + database_name + ".bj_current_aq " +
                    "where utctime >= '" + start_time + "' and utctime <= '" + end_time + "'")
     print("Fetching air quality data...")
     url = "https://biendata.com/competition/airquality/bj/" + \
@@ -75,7 +77,7 @@ def date_string_convert(date_string):
 
 
 start_date = "2018-04-01 00:00:00"
-end_date = "2018-04-01 10:00:00"
+end_date = "2018-04-05 23:00:00"
 database_name = "KDD"
 
 db = pymysql.connect("localhost", "root", "094213", database_name)
