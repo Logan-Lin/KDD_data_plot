@@ -100,7 +100,7 @@ def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
 start_time = "2017-10-01 14:00:00"
 end_time = "2017-10-10 14:00:00"
 station_id = "aotizhongxin_aq"
-grid_count = 4
+grid_count = 2
 
 if len(sys.argv) > 1:
     try:
@@ -114,8 +114,27 @@ if len(sys.argv) > 1:
 
 station_coordinate = get_station_location(station_id)
 nearest = get_nearest_grid(station_id, grid_count)
+grid_longitudes = []
+grid_latitudes = []
+labels = []
 for one_near in nearest:
     plot_grid_meo(one_near[0], one_near[1], one_near[2], start_time, end_time)
+    grid_longitudes.append(one_near[1])
+    grid_latitudes.append(one_near[2])
+    labels.append(one_near[0])
+
+plt.figure()
+plt.plot(station_coordinate[0], station_coordinate[1], 'o')
+plt.plot(grid_longitudes, grid_latitudes, 'o')
+for label, x, y in zip(labels, grid_longitudes, grid_latitudes):
+    plt.annotate(
+        label,
+        xy=(x, y), xytext=(-10, 10),
+        textcoords='offset points', ha='right', va='bottom',
+        bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.3),
+        arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+plt.xlabel("longitude")
+plt.ylabel("latitude")
 
 PM2_array = get_aq_data(station_id, start_time, end_time, 0)
 PM10_array = get_aq_data(station_id, start_time, end_time, 1)
@@ -131,10 +150,12 @@ size = np.shape(PM2_array)[1]
 plt.figure()
 x = range(size)
 plt.subplot(4, 1, 1)
-plt.plot(x, PM2_array[1], x, PM10_array[1])
+plt.plot(x, PM2_array[1], label='PM2.5')
+plt.plot(x, PM10_array[1], label='PM10')
 plt.grid()
 plt.ylabel("PM2.5 & PM10")
 plt.title(station_id + ", (" + str(station_coordinate[0]) + ", " + str(station_coordinate[1]) + ")")
+plt.legend(loc='upper right')
 
 plt.subplot(4, 1, 2)
 plt.plot(x, NO2_array[1])
@@ -147,9 +168,11 @@ plt.grid()
 plt.ylabel("CO")
 
 plt.subplot(4, 1, 4)
-plt.plot(x, O3_array[1], x, SO2_array[1])
+plt.plot(x, O3_array[1], label='O3')
+plt.plot(x, SO2_array[1], label='SO2')
 plt.grid()
 plt.ylabel("O3 & SO2")
+plt.legend(loc='upper right', shadow=True)
 
 plt.xlabel("time")
 
