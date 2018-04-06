@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pymysql as pm
+import time
 
 database = pm.connect("localhost", "root", "094213", "KDD")
 cursor = database.cursor()
@@ -27,9 +28,85 @@ def get_aq_data(station_id, start_time, end_time, row_index):
     return np.array([time_array, data_array])
 
 
-start_time = "2017-04-01 14:00:00"
-end_time = "2017-05-01 14:00:00"
+def get_all_aq_data(station_id, start_time, end_time):
+    data_matrix = [[], [], [], [], []]
+    time_array = []
+    data_rows = [2, 3, 4, 5, 6]
+    temp_value = -1
+    cursor.execute("SELECT * FROM KDD.bj_17_18_aq" +
+                   " WHERE utctime >= '" + start_time + "' AND utctime <= '" + end_time + "'" +
+                   " AND stationid LIKE '" + station_id + "'")
+    result = cursor.fetchall()
+    for row in result:
+        time_array.append(row[1])
+        for row_index in data_rows:
+            if float(row[row_index]) < -900:
+                value = temp_value
+            else:
+                temp_value = float(row[row_index])
+            data_matrix[row_index].append(float(row[row_index]))
+    return np.array([time_array, data_matrix])
+
+
+def get_station_location(station_id):
+    cursor.execute("SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
+                   station_id + "'")
+    result = cursor.fetchone()
+    return np.array(result)
+
+
+def get_nearest_grid(station_id, count):
+    cursor.execute("SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
+                   station_id + "'")
+    result = cursor.fetchone()
+    coordinate = result
+    cursor.execute("SELECT * FROM KDD.bj_grid_location " +
+                   "ORDER BY (abs(" + str(coordinate[0]) + " - longitude) + " +
+                   "abs(" + str(coordinate[1]) + " - latitude))")
+    result = cursor.fetchall()
+    return result[0:count]
+
+
+def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
+    data_matrix = []
+    data_rows = [1, 2, 3, 4, 5, 6]
+    data_name_array = ["temperature", "pressure", "humidity", "wind_direction", "wind_speed"]
+    cursor.execute("select * from KDD.bj_historical_meo_grid " +
+                   "where stationName like '" + grid_name + "' " +
+                   "and utctime >= '" + start_time + "'and utctime <= '" + end_time + "'")
+    result = cursor.fetchall()
+    for row_index in data_rows:
+        array = []
+        for row in result:
+            array.append(row[row_index])
+        data_matrix.append(array)
+
+    plt.figure()
+    size = np.shape(data_matrix)[1]
+    x = range(size)
+
+    data_count = len(data_name_array)
+    for i in range(len(data_name_array)):
+        index = i + 1
+        plt.subplot(data_count, 1, index)
+        if index == 1:
+            plt.title(grid_name + ", (" + str(longitude) + ", " + str(latitude) + ")")
+        plt.plot(x, data_matrix[index])
+        plt.grid()
+        plt.ylabel(data_name_array[i])
+    plt.xlabel("time")
+
+
+start_time = "2017-10-01 14:00:00"
+end_time = "2017-10-10 14:00:00"
 station_id = "aotizhongxin_aq"
+grid_count = 4
+
+station_coordinate = get_station_location(station_id)
+nearest = get_nearest_grid(station_id, grid_count)
+for one_near in nearest:
+    plot_grid_meo(one_near[0], one_near[1], one_near[2], start_time, end_time)
+
 PM2_array = get_aq_data(station_id, start_time, end_time, 0)
 PM10_array = get_aq_data(station_id, start_time, end_time, 1)
 NO2_array = get_aq_data(station_id, start_time, end_time, 2)
@@ -41,12 +118,13 @@ size = np.shape(PM2_array)[1]
 # for i in range(size):
 #     print(PM2_array[0][i], PM2_array[1][i], PM10_array[1][i], sep=', ')
 
+plt.figure()
 x = range(size)
 plt.subplot(4, 1, 1)
 plt.plot(x, PM2_array[1], x, PM10_array[1])
 plt.grid()
 plt.ylabel("PM2.5 & PM10")
-plt.title("AQ Display")
+plt.title(station_id + ", (" + str(station_coordinate[0]) + ", " + str(station_coordinate[1]) + ")")
 
 plt.subplot(4, 1, 2)
 plt.plot(x, NO2_array[1])
@@ -64,4 +142,5 @@ plt.grid()
 plt.ylabel("O3 & SO2")
 
 plt.xlabel("time")
+
 plt.show()
