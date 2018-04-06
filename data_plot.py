@@ -1,9 +1,8 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import pymysql as pm
 import sys
-import requests
-import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pymysql as pm
 
 database = pm.connect("localhost", "root", "094213", "KDD")
 cursor = database.cursor()
@@ -86,19 +85,10 @@ def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
     plt.xlabel("time")
 
 
-def insert_current_grid_data(start_time, end_time):
-    url = "https://biendata.com/competition/meteorology/bj_grid/" + start_time + "/" + end_time + "/2k0d1d8"
-    responses = requests.get(url)
-    rows = responses.text.split('\n')
-    print(rows)
-
-
 start_time = "2017-10-01 14:00:00"
 end_time = "2017-10-10 14:00:00"
 station_id = "aotizhongxin_aq"
 grid_count = 2
-
-# start_time_object =
 
 # If command line arguments were inputted, use information from these instead
 if len(sys.argv) > 1:
@@ -173,4 +163,5 @@ plt.legend(loc='upper right', shadow=True)
 
 plt.xlabel("time")
 
+print("Plotting data...")
 plt.show()
