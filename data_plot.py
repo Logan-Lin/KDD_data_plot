@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pymysql as pm
-import time
+import sys
 
 database = pm.connect("localhost", "root", "094213", "KDD")
 cursor = database.cursor()
@@ -101,6 +101,16 @@ start_time = "2017-10-01 14:00:00"
 end_time = "2017-10-10 14:00:00"
 station_id = "aotizhongxin_aq"
 grid_count = 4
+
+if len(sys.argv) > 1:
+    try:
+        start_time = sys.argv[1]
+        end_time = sys.argv[2]
+        station_id = sys.argv[3]
+        grid_count = int(sys.argv[4])
+    except:
+        print("Command line argument no correct!")
+        exit(1)
 
 station_coordinate = get_station_location(station_id)
 nearest = get_nearest_grid(station_id, grid_count)
