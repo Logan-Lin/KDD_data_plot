@@ -156,8 +156,8 @@ if len(sys.argv) > 1:
     try:
         start_time = sys.argv[1]
         end_time = sys.argv[2]
-        station_id = sys.argv[3]
-        grid_count = int(sys.argv[4])
+        grid_count = int(sys.argv[3])
+        aq_array = sys.argv[4:]
     except:
         print("Command line argument no correct!")
         exit(1)
