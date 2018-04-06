@@ -109,6 +109,32 @@ def plot_aq_data(station_id, longitude, latitude, start_time, end_time):
     plt.xlabel("time")
 
 
+def plot_aq_nearest_meo(station_id, start_time, end_time):
+    station_coordinate = get_station_location(station_id)
+    plot_aq_data(station_id, station_coordinate[0], station_coordinate[1], start_time, end_time)
+    nearest = get_nearest_grid(station_id, grid_count)
+    grid_longitudes = []
+    grid_latitudes = []
+    labels = []
+    for one_near in nearest:
+        plot_grid_meo(one_near[0], one_near[1], one_near[2], start_time, end_time)
+        grid_longitudes.append(one_near[1])
+        grid_latitudes.append(one_near[2])
+        labels.append(one_near[0])
+    plt.figure()
+    plt.plot(station_coordinate[0], station_coordinate[1], 'o')
+    plt.plot(grid_longitudes, grid_latitudes, 'o')
+    for label, x, y in zip(labels, grid_longitudes, grid_latitudes):
+        plt.annotate(
+            label,
+            xy=(x, y), xytext=(-10, 10),
+            textcoords='offset points', ha='right', va='bottom',
+            bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.3),
+            arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+    plt.xlabel("longitude")
+    plt.ylabel("latitude")
+
+
 # If command line arguments were inputted, use information from these instead
 if len(sys.argv) > 1:
     try:
@@ -120,31 +146,7 @@ if len(sys.argv) > 1:
         print("Command line argument no correct!")
         exit(1)
 
-
-station_coordinate = get_station_location(station_id)
-plot_aq_data(station_id, station_coordinate[0], station_coordinate[1], start_time, end_time)
-nearest = get_nearest_grid(station_id, grid_count)
-grid_longitudes = []
-grid_latitudes = []
-labels = []
-for one_near in nearest:
-    plot_grid_meo(one_near[0], one_near[1], one_near[2], start_time, end_time)
-    grid_longitudes.append(one_near[1])
-    grid_latitudes.append(one_near[2])
-    labels.append(one_near[0])
-
-plt.figure()
-plt.plot(station_coordinate[0], station_coordinate[1], 'o')
-plt.plot(grid_longitudes, grid_latitudes, 'o')
-for label, x, y in zip(labels, grid_longitudes, grid_latitudes):
-    plt.annotate(
-        label,
-        xy=(x, y), xytext=(-10, 10),
-        textcoords='offset points', ha='right', va='bottom',
-        bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.3),
-        arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
-plt.xlabel("longitude")
-plt.ylabel("latitude")
+plot_aq_nearest_meo(station_id, start_time, end_time)
 
 print("Plotting data...")
 plt.show()
