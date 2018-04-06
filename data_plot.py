@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pymysql as pm
 import sys
+import requests
+import time
 
 database = pm.connect("localhost", "root", "094213", "KDD")
 cursor = database.cursor()
@@ -9,43 +11,29 @@ cursor = database.cursor()
 rows = ["PM2.5", "PM10", "NO2", "CO", "O3", "SO2"]
 
 
-def get_aq_data(station_id, start_time, end_time, row_index):
-    data_array = []
-    time_array = []
-    temp_value = -1
-    cursor.execute("select " + "utctime," + "`" + rows[row_index] + "`" + " from KDD.bj_17_18_aq" +
-                   " where utctime >= '" + start_time + "' and utctime <= '" + end_time + "'" +
-                   " and stationid like '" + station_id + "'")
-    result = cursor.fetchall()
-    for row in result:
-        time_array.append(row[0])
-        value = float(row[1])
-        if float(row[1]) < -10:
-            value = temp_value
-        else:
-            temp_value = float(row[1])
-        data_array.append(float(value))
-    return np.array([time_array, data_array])
-
-
-def get_all_aq_data(station_id, start_time, end_time):
-    data_matrix = [[], [], [], [], []]
-    time_array = []
-    data_rows = [2, 3, 4, 5, 6]
+def get_aq_data(station_id, start_time, end_time):
+    print("Fetching", station_id, "air quality data from MySQL...")
+    data_matrix = []
+    data_rows = [1, 2, 3, 4, 5, 6, 7]
     temp_value = -1
     cursor.execute("SELECT * FROM KDD.bj_17_18_aq" +
                    " WHERE utctime >= '" + start_time + "' AND utctime <= '" + end_time + "'" +
                    " AND stationid LIKE '" + station_id + "'")
     result = cursor.fetchall()
-    for row in result:
-        time_array.append(row[1])
-        for row_index in data_rows:
-            if float(row[row_index]) < -900:
-                value = temp_value
+    for row_index in data_rows:
+        array = []
+        for row in result:
+            if row_index == 1:
+                array.append(row[row_index])
             else:
-                temp_value = float(row[row_index])
-            data_matrix[row_index].append(float(row[row_index]))
-    return np.array([time_array, data_matrix])
+                value = row[row_index]
+                if value < -10:
+                    value = temp_value
+                else:
+                    temp_value = value
+                array.append(value)
+        data_matrix.append(array)
+    return data_matrix
 
 
 def get_station_location(station_id):
@@ -68,12 +56,13 @@ def get_nearest_grid(station_id, count):
 
 
 def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
+    print("Fetching", grid_name, "grid meteorology data from MySQL...")
     data_matrix = []
     data_rows = [1, 2, 3, 4, 5, 6]
     data_name_array = ["temperature", "pressure", "humidity", "wind_direction", "wind_speed"]
-    cursor.execute("select * from KDD.bj_historical_meo_grid " +
-                   "where stationName like '" + grid_name + "' " +
-                   "and utctime >= '" + start_time + "'and utctime <= '" + end_time + "'")
+    cursor.execute("SELECT * FROM KDD.bj_historical_meo_grid " +
+                   "WHERE stationName LIKE '" + grid_name + "' " +
+                   "AND utctime >= '" + start_time + "'AND utctime <= '" + end_time + "'")
     result = cursor.fetchall()
     for row_index in data_rows:
         array = []
@@ -97,11 +86,21 @@ def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
     plt.xlabel("time")
 
 
+def insert_current_grid_data(start_time, end_time):
+    url = "https://biendata.com/competition/meteorology/bj_grid/" + start_time + "/" + end_time + "/2k0d1d8"
+    responses = requests.get(url)
+    rows = responses.text.split('\n')
+    print(rows)
+
+
 start_time = "2017-10-01 14:00:00"
 end_time = "2017-10-10 14:00:00"
 station_id = "aotizhongxin_aq"
 grid_count = 2
 
+# start_time_object =
+
+# If command line arguments were inputted, use information from these instead
 if len(sys.argv) > 1:
     try:
         start_time = sys.argv[1]
@@ -136,40 +135,38 @@ for label, x, y in zip(labels, grid_longitudes, grid_latitudes):
 plt.xlabel("longitude")
 plt.ylabel("latitude")
 
-PM2_array = get_aq_data(station_id, start_time, end_time, 0)
-PM10_array = get_aq_data(station_id, start_time, end_time, 1)
-NO2_array = get_aq_data(station_id, start_time, end_time, 2)
-CO_array = get_aq_data(station_id, start_time, end_time, 3)
-O3_array = get_aq_data(station_id, start_time, end_time, 4)
-SO2_array = get_aq_data(station_id, start_time, end_time, 5)
-size = np.shape(PM2_array)[1]
-# print("Datetime", "PM2.5", "PM10")
-# for i in range(size):
-#     print(PM2_array[0][i], PM2_array[1][i], PM10_array[1][i], sep=', ')
+aq_matrix = get_aq_data(station_id, start_time, end_time)
+size = np.shape(aq_matrix)[1]
+PM2_array = aq_matrix[1]
+PM10_array = aq_matrix[2]
+NO2_array = aq_matrix[3]
+CO_array = aq_matrix[4]
+O3_array = aq_matrix[5]
+SO2_array = aq_matrix[6]
 
 plt.figure()
 x = range(size)
 plt.subplot(4, 1, 1)
-plt.plot(x, PM2_array[1], label='PM2.5')
-plt.plot(x, PM10_array[1], label='PM10')
+plt.plot(x, PM2_array, label='PM2.5')
+plt.plot(x, PM10_array, label='PM10')
 plt.grid()
 plt.ylabel("PM2.5 & PM10")
 plt.title(station_id + ", (" + str(station_coordinate[0]) + ", " + str(station_coordinate[1]) + ")")
 plt.legend(loc='upper right')
 
 plt.subplot(4, 1, 2)
-plt.plot(x, NO2_array[1])
+plt.plot(x, NO2_array)
 plt.grid()
 plt.ylabel("NO2")
 
 plt.subplot(4, 1, 3)
-plt.plot(x, CO_array[1])
+plt.plot(x, CO_array)
 plt.grid()
 plt.ylabel("CO")
 
 plt.subplot(4, 1, 4)
-plt.plot(x, O3_array[1], label='O3')
-plt.plot(x, SO2_array[1], label='SO2')
+plt.plot(x, O3_array, label='O3')
+plt.plot(x, SO2_array, label='SO2')
 plt.grid()
 plt.ylabel("O3 & SO2")
 plt.legend(loc='upper right', shadow=True)
