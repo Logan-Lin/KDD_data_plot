@@ -5,10 +5,13 @@ import numpy as np
 import pymysql as pm
 import data_fetch
 
+start_time = "2017-04-01 00:00:00"
+end_time = "2017-05-01 23:00:00"
+station_id = "beibuxinqu_aq"
+grid_count = 1
+
 database = pm.connect("localhost", "root", "094213", "KDD")
 cursor = database.cursor()
-
-rows = ["PM2.5", "PM10", "NO2", "CO", "O3", "SO2"]
 
 
 def get_aq_data(station_id, start_time, end_time):
@@ -80,16 +83,31 @@ def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
         plt.subplot(data_count, 1, index)
         if index == 1:
             plt.title(grid_name + ", (" + str(longitude) + ", " + str(latitude) + ")")
-        plt.plot(x, data_matrix[index])
+        plt.plot(x, data_matrix[index], label=data_name_array[i])
         plt.grid()
-        plt.ylabel(data_name_array[i])
+        plt.legend(loc='upper right', shadow=False)
     plt.xlabel("time")
 
 
-start_time = "2017-10-01 14:00:00"
-end_time = "2017-10-10 14:00:00"
-station_id = "aotizhongxin_aq"
-grid_count = 2
+def plot_aq_data(station_id, longitude, latitude, start_time, end_time):
+    aq_matrix = get_aq_data(station_id, start_time, end_time)
+    size = np.shape(aq_matrix)[1]
+
+    plt.figure()
+    x = range(size)
+
+    aq_name = ["PM2.5", "PM10", "NO2", "CO", "SO2", "O3"]
+    aq_count = len(aq_name)
+    for i in range(aq_count):
+        plt.subplot(aq_count, 1, i + 1)
+        if i == 0:
+            plt.title(station_id + ", (" + str(longitude) + ", " + str(latitude) + ")")
+        plt.plot(x, aq_matrix[i + 1], label=aq_name[i])
+        plt.grid()
+        plt.legend(loc='upper right', shadow=False)
+
+    plt.xlabel("time")
+
 
 # If command line arguments were inputted, use information from these instead
 if len(sys.argv) > 1:
@@ -104,6 +122,7 @@ if len(sys.argv) > 1:
 
 
 station_coordinate = get_station_location(station_id)
+plot_aq_data(station_id, station_coordinate[0], station_coordinate[1], start_time, end_time)
 nearest = get_nearest_grid(station_id, grid_count)
 grid_longitudes = []
 grid_latitudes = []
@@ -126,44 +145,6 @@ for label, x, y in zip(labels, grid_longitudes, grid_latitudes):
         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
 plt.xlabel("longitude")
 plt.ylabel("latitude")
-
-aq_matrix = get_aq_data(station_id, start_time, end_time)
-size = np.shape(aq_matrix)[1]
-PM2_array = aq_matrix[1]
-PM10_array = aq_matrix[2]
-NO2_array = aq_matrix[3]
-CO_array = aq_matrix[4]
-O3_array = aq_matrix[5]
-SO2_array = aq_matrix[6]
-
-plt.figure()
-x = range(size)
-plt.subplot(4, 1, 1)
-plt.plot(x, PM2_array, label='PM2.5')
-plt.plot(x, PM10_array, label='PM10')
-plt.grid()
-plt.ylabel("PM2.5 & PM10")
-plt.title(station_id + ", (" + str(station_coordinate[0]) + ", " + str(station_coordinate[1]) + ")")
-plt.legend(loc='upper right')
-
-plt.subplot(4, 1, 2)
-plt.plot(x, NO2_array)
-plt.grid()
-plt.ylabel("NO2")
-
-plt.subplot(4, 1, 3)
-plt.plot(x, CO_array)
-plt.grid()
-plt.ylabel("CO")
-
-plt.subplot(4, 1, 4)
-plt.plot(x, O3_array, label='O3')
-plt.plot(x, SO2_array, label='SO2')
-plt.grid()
-plt.ylabel("O3 & SO2")
-plt.legend(loc='upper right', shadow=True)
-
-plt.xlabel("time")
 
 print("Plotting data...")
 plt.show()
