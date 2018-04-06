@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pymysql as pm
 
-start_time = "2017-04-01 00:00:00"
-end_time = "2017-05-01 23:00:00"
-station_id = "beibuxinqu_aq"
+start_time = "2017-06-18 00:00:00"
+end_time = "2017-06-18 23:00:00"
+aq_array = ["tiantan_aq", "qianmen_aq", "yongdingmennei_aq"]
 database_name = "KDD"  # Adjust this to your database name.
-grid_count = 1
+grid_count = 4
 
 database = pm.connect("localhost", "root", "094213", "KDD")
 cursor = database.cursor()
@@ -109,28 +109,44 @@ def plot_aq_data(station_id, longitude, latitude, start_time, end_time):
     plt.xlabel("time")
 
 
-def plot_aq_nearest_meo(station_id, start_time, end_time):
-    station_coordinate = get_station_location(station_id)
-    plot_aq_data(station_id, station_coordinate[0], station_coordinate[1], start_time, end_time)
-    nearest = get_nearest_grid(station_id, grid_count)
-    grid_longitudes = []
-    grid_latitudes = []
-    labels = []
-    for one_near in nearest:
-        plot_grid_meo(one_near[0], one_near[1], one_near[2], start_time, end_time)
-        grid_longitudes.append(one_near[1])
-        grid_latitudes.append(one_near[2])
-        labels.append(one_near[0])
-    plt.figure()
-    plt.plot(station_coordinate[0], station_coordinate[1], 'o')
-    plt.plot(grid_longitudes, grid_latitudes, 'o')
-    for label, x, y in zip(labels, grid_longitudes, grid_latitudes):
+def draw_labels(labels, x, y):
+    for label, x, y in zip(labels, x, y):
         plt.annotate(
             label,
             xy=(x, y), xytext=(-10, 10),
             textcoords='offset points', ha='right', va='bottom',
             bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.3),
             arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0'))
+
+
+def plot_aq_nearest_meo(station_id_array, start_time, end_time, grid_count):
+    station_longitudes = []
+    station_latitudes = []
+    grid_longitudes = []
+    grid_latitudes = []
+    labels = []
+
+    refined_nearest = set()
+    for station_id in station_id_array:
+        station_coordinate = get_station_location(station_id)
+        station_longitudes.append(station_coordinate[0])
+        station_latitudes.append(station_coordinate[1])
+        plot_aq_data(station_id, station_coordinate[0], station_coordinate[1], start_time, end_time)
+        nearest = get_nearest_grid(station_id, grid_count)
+        for one_near in nearest:
+            refined_nearest.add(one_near)
+    for one_near in refined_nearest:
+        plot_grid_meo(one_near[0], one_near[1], one_near[2], start_time, end_time)
+        grid_longitudes.append(one_near[1])
+        grid_latitudes.append(one_near[2])
+        labels.append(one_near[0])
+    if len(station_id_array) == 1 and grid_count == 0:
+        return
+    plt.figure()
+    plt.plot(station_longitudes, station_latitudes, 'o')
+    plt.plot(grid_longitudes, grid_latitudes, 'o')
+    draw_labels(labels, grid_longitudes, grid_latitudes)
+    draw_labels(station_id_array, station_longitudes, station_latitudes)
     plt.xlabel("longitude")
     plt.ylabel("latitude")
 
@@ -146,7 +162,9 @@ if len(sys.argv) > 1:
         print("Command line argument no correct!")
         exit(1)
 
-plot_aq_nearest_meo(station_id, start_time, end_time)
+
+plot_aq_nearest_meo(aq_array, start_time, end_time, grid_count)
 
 print("Plotting data...")
+# plt.savefig(start_time + ".png", dpi=300)
 plt.show()
