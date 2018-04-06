@@ -3,11 +3,11 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import pymysql as pm
-import data_fetch
 
 start_time = "2017-04-01 00:00:00"
 end_time = "2017-05-01 23:00:00"
 station_id = "beibuxinqu_aq"
+database_name = "KDD"  # Adjust this to your database name.
 grid_count = 1
 
 database = pm.connect("localhost", "root", "094213", "KDD")
@@ -19,7 +19,7 @@ def get_aq_data(station_id, start_time, end_time):
     data_matrix = []
     data_rows = [1, 2, 3, 4, 5, 6, 7]
     temp_value = -1
-    cursor.execute("SELECT * FROM KDD.bj_17_18_aq" +
+    cursor.execute("SELECT * FROM " + database_name + ".bj_17_18_aq" +
                    " WHERE utctime >= '" + start_time + "' AND utctime <= '" + end_time + "'" +
                    " AND stationid LIKE '" + station_id + "'")
     result = cursor.fetchall()
@@ -40,18 +40,18 @@ def get_aq_data(station_id, start_time, end_time):
 
 
 def get_station_location(station_id):
-    cursor.execute("SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
+    cursor.execute("SELECT longitude, latitude FROM " + database_name + ".bj_station_location WHERE id LIKE '" +
                    station_id + "'")
     result = cursor.fetchone()
     return np.array(result)
 
 
 def get_nearest_grid(station_id, count):
-    cursor.execute("SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
+    cursor.execute("SELECT longitude, latitude FROM " + database_name + ".bj_station_location WHERE id LIKE '" +
                    station_id + "'")
     result = cursor.fetchone()
     coordinate = result
-    cursor.execute("SELECT * FROM KDD.bj_grid_location " +
+    cursor.execute("SELECT * FROM " + database_name + ".bj_grid_location " +
                    "ORDER BY (abs(" + str(coordinate[0]) + " - longitude) + " +
                    "abs(" + str(coordinate[1]) + " - latitude))")
     result = cursor.fetchall()
@@ -63,7 +63,7 @@ def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
     data_matrix = []
     data_rows = [1, 2, 3, 4, 5, 6]
     data_name_array = ["temperature", "pressure", "humidity", "wind_direction", "wind_speed"]
-    cursor.execute("SELECT * FROM KDD.bj_historical_meo_grid " +
+    cursor.execute("SELECT * FROM " + database_name + ".bj_historical_meo_grid " +
                    "WHERE stationName LIKE '" + grid_name + "' " +
                    "AND utctime >= '" + start_time + "'AND utctime <= '" + end_time + "'")
     result = cursor.fetchall()
