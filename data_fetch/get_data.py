@@ -1,9 +1,6 @@
 import pymysql
 import requests
 
-db = pymysql.connect("localhost", "root", "094213", "KDD")
-cursor = db.cursor()
-
 
 def insert_current_grid_data(start_time, end_time):
     cursor.execute("delete from KDD.bj_current_meo_grid " +
@@ -21,7 +18,7 @@ def insert_current_grid_data(start_time, end_time):
         header = "','".join([data_array[1], data_array[2], data_array[3]])
         data = ",".join([data_array[4], data_array[5], data_array[6], data_array[7], data_array[8]])
         try:
-            cursor.execute("insert into KDD.bj_current_meo_grid " +
+            cursor.execute("insert into " + database_name + ".bj_current_meo_grid " +
                            "(stationName, utctime, weather, temperature, " +
                            "pressure, humidity, wind_direction, wind_speed) VALUE " +
                            "('" + header + "'," + data + ")")
@@ -62,7 +59,7 @@ def insert_current_aq_data(start_time, end_time):
         if len(valid_data) == 0:
             temp = ""
         try:
-            sql = "insert into KDD.bj_current_aq (" + ",".join(valid_row_names) + ") VALUE " + \
+            sql = "insert into " + database_name + ".bj_current_aq (" + ",".join(valid_row_names) + ") VALUE " + \
                         "('" + header_string + "'" + temp + data_string + ")"
             cursor.execute(sql)
         except:
@@ -79,5 +76,10 @@ def date_string_convert(date_string):
 
 start_date = "2018-04-01 00:00:00"
 end_date = "2018-04-01 10:00:00"
+database_name = "KDD"
+
+db = pymysql.connect("localhost", "root", "094213", database_name)
+cursor = db.cursor()
+
 insert_current_grid_data(start_date, end_date)
 insert_current_aq_data(start_date, end_date)
