@@ -3,6 +3,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from utility import mysql_connect
+from utility import location
+from data_export import airquality
 
 start_time = "2017-04-18 00:00:00"
 end_time = "2017-04-18 23:00:00"
@@ -10,45 +12,10 @@ aq_array = ["beibuxinqu_aq", "dongsi_aq"]
 grid_count = 1
 
 
-def get_aq_data(station_id, start_time, end_time):
-    print("Fetching", station_id, "air quality data from MySQL...")
-    data_matrix = []
-    data_rows = [1, 2, 3, 4, 5, 6, 7]
-    temp_value = -1
-    result = mysql_connect.get_result("SELECT * FROM KDD.bj_17_18_aq" +
-                                      " WHERE utctime >= '" + start_time + "' AND utctime <= '" + end_time + "'" +
-                                      " AND stationid LIKE '" + station_id + "'")
-    for row_index in data_rows:
-        array = []
-        for row in result:
-            if row_index == 1:
-                array.append(row[row_index])
-            else:
-                value = row[row_index]
-                if value < -10:
-                    value = temp_value
-                else:
-                    temp_value = value
-                array.append(value)
-        data_matrix.append(array)
-    return data_matrix
-
-
 def get_station_location(station_id):
     result = mysql_connect.get_result("SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
                                       station_id + "'")
     return result[0]
-
-
-def get_nearest_grid(station_id, count):
-    result = mysql_connect.get_result(
-        "SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
-        station_id + "'")
-    coordinate = result[0]
-    result = mysql_connect.get_result("SELECT * FROM KDD.bj_grid_location " +
-                                      "ORDER BY (abs(" + str(coordinate[0]) + " - longitude) + " +
-                                      "abs(" + str(coordinate[1]) + " - latitude))")
-    return result[0:count]
 
 
 def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
@@ -82,7 +49,7 @@ def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
 
 
 def plot_aq_data(station_id, longitude, latitude, start_time, end_time):
-    aq_matrix = get_aq_data(station_id, start_time, end_time)
+    aq_matrix = airquality.get_aq_data(station_id, start_time, end_time)
     size = np.shape(aq_matrix)[1]
 
     plt.figure()
@@ -124,7 +91,7 @@ def plot_aq_nearest_meo(station_id_array, start_time, end_time, grid_count):
         station_longitudes.append(station_coordinate[0])
         station_latitudes.append(station_coordinate[1])
         plot_aq_data(station_id, station_coordinate[0], station_coordinate[1], start_time, end_time)
-        nearest = get_nearest_grid(station_id, grid_count)
+        nearest = location.get_nearest_grid(station_id, grid_count)
         for one_near in nearest:
             refined_nearest.add(one_near)
     for one_near in refined_nearest:

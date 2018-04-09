@@ -27,9 +27,9 @@ def batch_commit(sql_array):
     for i in range(len(sql_array)):
         try:
             cursor.execute(sql_array[i])
-            database.commit()
         except:
             error.append(str(i + 1))
+    database.commit()
     cursor.close()
     database.close()
     return error

@@ -45,7 +45,6 @@ def insert_current_grid_data(start_time, end_time):
         print("Error at row", ",".join(error_row))
 
 
-
 def insert_current_aq_data(start_time, end_time):
     mysql_connect.commit_sql("DELETE FROM KDD.bj_current_aq " +
                              "WHERE utctime >= '" + start_time + "' AND utctime <= '" + end_time + "'")
