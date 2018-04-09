@@ -2,16 +2,12 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pymysql as pm
+from utility import mysql_connect
 
-start_time = "2017-06-18 00:00:00"
-end_time = "2017-06-18 23:00:00"
-aq_array = ["tiantan_aq", "qianmen_aq", "yongdingmennei_aq"]
-database_name = "KDD"  # Adjust this to your database name.
-grid_count = 4
-
-database = pm.connect("localhost", "root", "094213", "KDD")
-cursor = database.cursor()
+start_time = "2017-04-18 00:00:00"
+end_time = "2017-04-18 23:00:00"
+aq_array = ["beibuxinqu_aq", "dongsi_aq"]
+grid_count = 1
 
 
 def get_aq_data(station_id, start_time, end_time):
@@ -19,10 +15,9 @@ def get_aq_data(station_id, start_time, end_time):
     data_matrix = []
     data_rows = [1, 2, 3, 4, 5, 6, 7]
     temp_value = -1
-    cursor.execute("SELECT * FROM " + database_name + ".bj_17_18_aq" +
-                   " WHERE utctime >= '" + start_time + "' AND utctime <= '" + end_time + "'" +
-                   " AND stationid LIKE '" + station_id + "'")
-    result = cursor.fetchall()
+    result = mysql_connect.get_result("SELECT * FROM KDD.bj_17_18_aq" +
+                                      " WHERE utctime >= '" + start_time + "' AND utctime <= '" + end_time + "'" +
+                                      " AND stationid LIKE '" + station_id + "'")
     for row_index in data_rows:
         array = []
         for row in result:
@@ -40,21 +35,19 @@ def get_aq_data(station_id, start_time, end_time):
 
 
 def get_station_location(station_id):
-    cursor.execute("SELECT longitude, latitude FROM " + database_name + ".bj_station_location WHERE id LIKE '" +
-                   station_id + "'")
-    result = cursor.fetchone()
-    return np.array(result)
+    result = mysql_connect.get_result("SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
+                                      station_id + "'")
+    return result[0]
 
 
 def get_nearest_grid(station_id, count):
-    cursor.execute("SELECT longitude, latitude FROM " + database_name + ".bj_station_location WHERE id LIKE '" +
-                   station_id + "'")
-    result = cursor.fetchone()
-    coordinate = result
-    cursor.execute("SELECT * FROM " + database_name + ".bj_grid_location " +
-                   "ORDER BY (abs(" + str(coordinate[0]) + " - longitude) + " +
-                   "abs(" + str(coordinate[1]) + " - latitude))")
-    result = cursor.fetchall()
+    result = mysql_connect.get_result(
+        "SELECT longitude, latitude FROM KDD.bj_station_location WHERE id LIKE '" +
+        station_id + "'")
+    coordinate = result[0]
+    result = mysql_connect.get_result("SELECT * FROM KDD.bj_grid_location " +
+                                      "ORDER BY (abs(" + str(coordinate[0]) + " - longitude) + " +
+                                      "abs(" + str(coordinate[1]) + " - latitude))")
     return result[0:count]
 
 
@@ -63,10 +56,9 @@ def plot_grid_meo(grid_name, longitude, latitude, start_time, end_time):
     data_matrix = []
     data_rows = [1, 2, 3, 4, 5, 6]
     data_name_array = ["temperature", "pressure", "humidity", "wind_direction", "wind_speed"]
-    cursor.execute("SELECT * FROM " + database_name + ".bj_historical_meo_grid " +
-                   "WHERE stationName LIKE '" + grid_name + "' " +
-                   "AND utctime >= '" + start_time + "'AND utctime <= '" + end_time + "'")
-    result = cursor.fetchall()
+    result = mysql_connect.get_result("SELECT * FROM KDD.bj_historical_meo_grid " +
+                                      "WHERE stationName LIKE '" + grid_name + "' " +
+                                      "AND utctime >= '" + start_time + "'AND utctime <= '" + end_time + "'")
     for row_index in data_rows:
         array = []
         for row in result:
@@ -161,7 +153,6 @@ if len(sys.argv) > 1:
     except:
         print("Command line argument no correct!")
         exit(1)
-
 
 plot_aq_nearest_meo(aq_array, start_time, end_time, grid_count)
 
