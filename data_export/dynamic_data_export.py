@@ -2,6 +2,7 @@ from csv_process import csv_write
 from data_export import current_data_fetch
 from utility import date_tools
 import time as t
+from utility import location
 
 
 aq_row = ["PM2.5", "PM10", "NO2", "CO", "O3", "SO2"]
@@ -23,9 +24,11 @@ def fetch_period_train_sets(station_id, start_time, end_time):
     return data_matrix
 
 
-start, end = "2017-01-01 19:00:00", "2017-01-02 15:00:00"
-tic = t.time()
-data_matrix = fetch_period_train_sets("aotizhongxin_aq", start, end)
-toc = t.time()
-print(toc - tic)
-csv_write.write_csv(head_row, data_matrix, "test.csv")
+start, end = "2017-01-01 00:00:00", "2018-01-01 00:00:00"
+
+for station in location.get_all_station(""):
+    tic = t.time()
+    data_matrix = fetch_period_train_sets(station[0], start, end)
+    csv_write.write_csv(head_row, data_matrix, station[0] + ".csv")
+    toc = t.time()
+    print(toc - tic)
