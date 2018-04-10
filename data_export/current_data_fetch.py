@@ -18,7 +18,11 @@ def fetch_train_set(station_id, time):
     min_max_aq = [[2, 1574], [5, 3280], [1, 300], [0.1, 15], [1, 504], [1, 307]]
     aq_index = 0
     for aq_row_index in aq_rows:
-        aq_data_row.append(dr.normalization(aq_result[aq_row_index], min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
+        if aq_result[aq_row_index] < -100:
+            aq_data_row.append(None)
+        else:
+            aq_data_row.append(
+                dr.normalization(aq_result[aq_row_index], min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
         aq_index = aq_index + 1
 
     meo_data_row = []
@@ -36,8 +40,11 @@ def fetch_train_set(station_id, time):
         aq_index = 0
         nearest_aq_row.append(location.cal_affect_factor(nearest_station[0], station_id, time))
         for aq_row_index in aq_rows:
-            nearest_aq_row.append(dr.normalization(nearest_aq_result[aq_row_index],
-                                                   min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
+            if nearest_aq_result[aq_row_index] < -100:
+                nearest_aq_row.append(None)
+            else:
+                nearest_aq_row.append(dr.normalization(nearest_aq_result[aq_row_index],
+                                                       min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
             aq_index = aq_index + 1
 
     weekday, workday, holiday = date_tools.get_weekday_onehot(time)

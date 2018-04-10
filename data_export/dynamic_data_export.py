@@ -23,8 +23,9 @@ def fetch_period_train_sets(station_id, start_time, end_time):
     return data_matrix
 
 
+start, end = "2017-01-01 19:00:00", "2017-01-02 15:00:00"
 tic = t.time()
-data_matrix = fetch_period_train_sets("aotizhongxin_aq", "2017-05-01 00:00:00", "2017-05-01 23:00:00")
+data_matrix = fetch_period_train_sets("aotizhongxin_aq", start, end)
 toc = t.time()
 print(toc - tic)
-# csv_write.write_csv(head_row, data_matrix, "test.csv")
+csv_write.write_csv(head_row, data_matrix, "test.csv")
