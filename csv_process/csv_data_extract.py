@@ -1,5 +1,5 @@
 import csv
-from utility import mysql_connect
+from database_process import mysql_connect
 
 mysql_connect.commit_sql("DELETE FROM KDD.bj_17_18_aq where utctime < '2018-01-31 16:00:00'")
 

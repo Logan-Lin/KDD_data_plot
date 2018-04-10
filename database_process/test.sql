@@ -1,0 +1,1 @@
+create table FUCK (haha int);

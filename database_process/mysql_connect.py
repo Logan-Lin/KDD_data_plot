@@ -2,7 +2,7 @@ import pymysql
 
 
 def get_result(sql):
-    database = pymysql.connect("localhost", "root", "094213", "KDD")
+    database = pymysql.connect("localhost", "root", password, "KDD")
     cursor = database.cursor()
     cursor.execute(sql)
     result = cursor.fetchall()
@@ -12,7 +12,7 @@ def get_result(sql):
 
 
 def commit_sql(sql):
-    database = pymysql.connect("localhost", "root", "094213", "KDD")
+    database = pymysql.connect("localhost", "root", password, "KDD")
     cursor = database.cursor()
     cursor.execute(sql)
     database.commit()
@@ -21,7 +21,7 @@ def commit_sql(sql):
 
 
 def batch_commit(sql_array):
-    database = pymysql.connect("localhost", "root", "094213", "KDD")
+    database = pymysql.connect("localhost", "root", password, "KDD")
     cursor = database.cursor()
     error = []
     for i in range(len(sql_array)):
@@ -33,3 +33,6 @@ def batch_commit(sql_array):
     cursor.close()
     database.close()
     return error
+
+
+password = "094213"

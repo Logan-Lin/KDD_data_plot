@@ -1,4 +1,4 @@
-from utility import mysql_connect
+from database_process import mysql_connect
 
 
 def get_aq_data(station_id, start_time, end_time):

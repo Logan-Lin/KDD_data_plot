@@ -2,7 +2,7 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-from utility import mysql_connect
+from database_process import mysql_connect
 from utility import location
 from data_export import airquality
 

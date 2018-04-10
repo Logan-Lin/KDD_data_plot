@@ -1,4 +1,4 @@
-from utility import mysql_connect
+from database_process import mysql_connect
 import requests
 
 
