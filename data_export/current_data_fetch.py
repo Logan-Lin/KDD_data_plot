@@ -2,6 +2,7 @@ from data_export import airquality
 from data_export import meo
 from utility import data_regularization as dr
 from utility import location
+from utility import date_tools
 
 
 def fetch_train_set(station_id, time):
@@ -39,5 +40,6 @@ def fetch_train_set(station_id, time):
                                                    min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
             aq_index = aq_index + 1
 
-    sum_row = [station_id, time] + aq_data_row + meo_data_row + nearest_aq_row
+    weekday, workday, holiday = date_tools.get_weekday_onehot(time)
+    sum_row = [station_id, time, weekday, workday, holiday] + aq_data_row + meo_data_row + nearest_aq_row
     return sum_row
