@@ -20,3 +20,8 @@ def get_time_string(start_time_s, end_time_s):
     for time in per_delta(start_time, end_time, timedelta(hours=1)):
         time_string_array.append(time.strftime(format_string))
     return time_string_array
+
+
+def get_temp_scope(raw_string):
+    temp_string = raw_string.split("  ")[1][:-1]
+    return temp_string.split("~")
