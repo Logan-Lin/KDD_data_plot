@@ -1,4 +1,6 @@
 def normalization(value, min_value, max_value):
+    if value is None or value < -100:
+        return None
     return (value - min_value) / (max_value - min_value)
 
 

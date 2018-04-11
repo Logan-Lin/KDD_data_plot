@@ -29,6 +29,7 @@ start, end = "2017-01-01 00:00:00", "2018-01-01 00:00:00"
 for station in location.get_all_station(""):
     tic = t.time()
     data_matrix = fetch_period_train_sets(station[0], start, end)
-    csv_write.write_csv(head_row, data_matrix, station[0] + ".csv")
+    csv_write.write_csv(head_row, data_matrix, "export/" + station[0] + ".csv")
     toc = t.time()
     print(toc - tic)
+    break

@@ -1,11 +1,11 @@
 from data_export import airquality
 from data_export import meo
 from utility import data_regularization as dr
-from utility import location
 from utility import date_tools
+from utility import location
 
 
-def fetch_train_set(station_id, time):
+def fetch_train_set(station_id, time, data_matrix=None):
     nearest_grids = location.get_nearest_grid(station_id, 1)
     grid_name = nearest_grids[0][0]
 
@@ -18,11 +18,8 @@ def fetch_train_set(station_id, time):
     min_max_aq = [[2, 1574], [5, 3280], [1, 300], [0.1, 15], [1, 504], [1, 307]]
     aq_index = 0
     for aq_row_index in aq_rows:
-        if aq_result[aq_row_index] < -100:
-            aq_data_row.append(None)
-        else:
-            aq_data_row.append(
-                dr.normalization(aq_result[aq_row_index], min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
+        aq_data_row.append(
+            dr.normalization(aq_result[aq_row_index], min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
         aq_index = aq_index + 1
 
     meo_data_row = []
@@ -40,11 +37,8 @@ def fetch_train_set(station_id, time):
         aq_index = 0
         nearest_aq_row.append(location.cal_affect_factor(nearest_station[0], station_id, time))
         for aq_row_index in aq_rows:
-            if nearest_aq_result[aq_row_index] < -100:
-                nearest_aq_row.append(None)
-            else:
-                nearest_aq_row.append(dr.normalization(nearest_aq_result[aq_row_index],
-                                                       min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
+            nearest_aq_row.append(dr.normalization(nearest_aq_result[aq_row_index],
+                                                   min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
             aq_index = aq_index + 1
 
     weekday, workday, holiday = date_tools.get_weekday_onehot(time)

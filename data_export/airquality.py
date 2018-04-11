@@ -1,7 +1,7 @@
 from database_process import mysql_connect
 
 
-def get_aq_data(station_id, start_time, end_time):
+def get_aq_data(station_id, start_time, end_time, data_matrix=None):
     print("Fetching", station_id, "air quality data from MySQL...")
     data_matrix = []
     data_rows = [1, 2, 3, 4, 5, 6, 7]
