@@ -1,11 +1,8 @@
 import csv
 
 
-def write_csv(header_array, content_matrix, file_name):
-    csv_file = open(file_name, 'w')
+def write_csv(row, file_name):
+    csv_file = open(file_name, 'a')
     writer = csv.writer(csv_file, delimiter=',')
-    if header_array is not None:
-        writer.writerow(header_array)
-    for content_row in content_matrix:
-        writer.writerow(content_row)
+    writer.writerow(row)
     csv_file.close()

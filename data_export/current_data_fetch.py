@@ -6,6 +6,8 @@ from utility import location
 
 
 def fetch_train_set(station_id, time, data_matrix=None):
+    nor_start, nor_end = -1, 1
+
     nearest_grids = location.get_nearest_grid(station_id, 1)
     grid_name = nearest_grids[0][0]
 
@@ -18,8 +20,10 @@ def fetch_train_set(station_id, time, data_matrix=None):
     min_max_aq = [[2, 1574], [5, 3280], [1, 300], [0.1, 15], [1, 504], [1, 307]]
     aq_index = 0
     for aq_row_index in aq_rows:
-        aq_data_row.append(
-            dr.normalization(aq_result[aq_row_index], min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
+        # aq_data_row.append(
+        #     dr.normalization(aq_result[aq_row_index], min_max_aq[aq_index][0], min_max_aq[aq_index][1],
+        #                      nor_start, nor_end))
+        aq_data_row.append(dr.normalization(aq_result[aq_row_index]))
         aq_index = aq_index + 1
 
     meo_data_row = []
@@ -27,8 +31,10 @@ def fetch_train_set(station_id, time, data_matrix=None):
     min_max_meo = [[-25.5, 36.87], [826.39, 1040.62], [0, 100], [0, 360], [0, 68.82]]
     meo_index = 0
     for meo_row_index in meo_rows:
-        meo_data_row.append(dr.normalization(meo_result[meo_row_index],
-                                             min_max_meo[meo_index][0], min_max_meo[meo_index][1]))
+        # meo_data_row.append(dr.normalization(meo_result[meo_row_index],
+        #                                      min_max_meo[meo_index][0], min_max_meo[meo_index][1],
+        #                                      nor_start, nor_end))
+        meo_data_row.append(dr.normalization(meo_result[meo_row_index]))
         meo_index = meo_index + 1
 
     nearest_aq_row = []
@@ -37,8 +43,10 @@ def fetch_train_set(station_id, time, data_matrix=None):
         aq_index = 0
         nearest_aq_row.append(location.cal_affect_factor(nearest_station[0], station_id, time))
         for aq_row_index in aq_rows:
-            nearest_aq_row.append(dr.normalization(nearest_aq_result[aq_row_index],
-                                                   min_max_aq[aq_index][0], min_max_aq[aq_index][1]))
+            # nearest_aq_row.append(dr.normalization(nearest_aq_result[aq_row_index],
+            #                                        min_max_aq[aq_index][0], min_max_aq[aq_index][1],
+            #                                        nor_start, nor_end))
+            nearest_aq_row.append(dr.normalization(nearest_aq_result[aq_row_index]))
             aq_index = aq_index + 1
 
     weekday, workday, holiday = date_tools.get_weekday_onehot(time)

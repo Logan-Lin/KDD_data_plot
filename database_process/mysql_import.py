@@ -16,7 +16,7 @@ def write_all_grid(file_list):
         read_sql_file(file)
 
 
-file_dir = '../database_process'
+# file_dir = '../database_process'
 result = mysql_connect.get_result("select * from KDD.bj_grid_location")
 for row in result:
     grid_name = row[0]
@@ -31,5 +31,6 @@ for row in result:
                                  "PRIMARY KEY (stationName, utctime))")
     except:
         print("", end='')
-onlyfiles = [f for f in listdir(file_dir) if isfile(join(file_dir, f))]
-write_all_grid(onlyfiles)
+# onlyfiles = [f for f in listdir(file_dir) if isfile(join(file_dir, f))]
+# write_all_grid(onlyfiles)
+read_sql_file("merge.sql")

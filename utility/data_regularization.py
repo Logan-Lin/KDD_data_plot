@@ -1,7 +1,9 @@
-def normalization(value, min_value, max_value):
+def normalization(value, min_value=None, max_value=None, start=0, end=1):
     if value is None or value < -100:
         return None
-    return (value - min_value) / (max_value - min_value)
+    if min_value is None or max_value is None:
+        return value
+    return ((value - min_value) / (max_value - min_value)) * (end - start) + start
 
 
 def get_temp_scope(raw_string):
